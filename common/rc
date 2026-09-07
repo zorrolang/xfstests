@@ -5545,43 +5545,29 @@ _has_fs_sysfs_dev_attr()
 }
 
 # Require the existence of a sysfs entry at /sys/fs/$FSTYP/$DEV/$ATTR
-# All arguments are necessary, and in this order:
+#
+# If only one argument is given, it is taken as the attribute under
+# $TEST_DEV.  Otherwise the arguments are, in this order:
 #  - dev: device name, e.g. $SCRATCH_DEV
 #  - attr: path name under /sys/fs/$FSTYP/$dev
 #
-# Usage example:
+# Usage examples:
+#   _require_fs_sysfs_dev_attr error/fail_at_unmount
 #   _require_fs_sysfs_dev_attr /dev/mapper/scratch-dev error/fail_at_unmount
 _require_fs_sysfs_dev_attr()
 {
-	_has_fs_sysfs_dev_attr "$@" && return
+	local dev attr
 
-	local dev=$1
-	local attr=$2
+	if [ $# -eq 1 ];then
+		dev=$TEST_DEV
+		attr=$1
+	else
+		dev=$1
+		attr=$2
+	fi
+	_has_fs_sysfs_dev_attr "$dev" "$attr" && return
+
 	local dname=$(_fs_sysfs_dname $dev)
-
-	_notrun "This test requires /sys/fs/${FSTYP}/${dname}/${attr}"
-}
-
-# Test for the existence of a sysfs entry at /sys/fs/$FSTYP/DEV/$ATTR
-#
-# Only one argument is needed:
-#  - attr: path name under /sys/fs/$FSTYP/DEV
-#
-# Usage example:
-#   _has_fs_sysfs error/fail_at_unmount
-_has_fs_sysfs()
-{
-	_has_fs_sysfs_dev_attr $TEST_DEV "$@"
-}
-
-# Require the existence of a sysfs entry at /sys/fs/$FSTYP/DEV/$ATTR
-_require_fs_sysfs()
-{
-	_has_fs_sysfs "$@" && return
-
-	local attr=$1
-	local dname=$(_short_dev $TEST_DEV)
-
 	_notrun "This test requires /sys/fs/${FSTYP}/${dname}/${attr}"
 }
 
